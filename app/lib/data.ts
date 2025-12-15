@@ -4,6 +4,7 @@ import {
   CustomersTableType,
   InvoiceForm,
   InvoicesTable,
+  LatestInvoice,
   LatestInvoiceRaw,
   Revenue,
 } from './definitions';
@@ -30,7 +31,7 @@ export async function fetchRevenue() {
 
 
 /* ===================== LATEST INVOICES ===================== */
-export async function fetchLatestInvoices() {
+export async function fetchLatestInvoices(): Promise<LatestInvoice[]> {
   try {
     const data = await sql<LatestInvoiceRaw[]>`
       SELECT
@@ -45,8 +46,16 @@ export async function fetchLatestInvoices() {
       LIMIT 5
     `;
 
-    // ❗ JANGAN format currency di sini
-    return data;
+    // Format currency untuk amount
+    const formattedData: LatestInvoice[] = data.map((invoice) => ({
+      id: invoice.id,
+      name: invoice.name,
+      email: invoice.email,
+      image_url: invoice.image_url,
+      amount: formatCurrency(invoice.amount),
+    }));
+    
+    return formattedData;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch the latest invoices.');
